@@ -27,7 +27,7 @@ contract DecubateVesting is IDecubateVesting, Ownable, ReentrancyGuard {
 
     IERC20 private _token;
 
-    constructor(address token) {
+    constructor(address token) Ownable() {
       _token = IERC20(token);
     }
 
