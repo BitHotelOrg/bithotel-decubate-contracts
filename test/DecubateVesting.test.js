@@ -23,6 +23,10 @@ contract('DecubateVesting', function (accounts) {
     expect(await this.vesting.getToken()).to.equal(this.token.address);
   });
 
+  it('has an owner', async function () {
+    expect(await this.vesting.owner()).to.equal(initialHolder.address);
+  });
+
   it('change a token', async function () {
     await this.vesting.setToken(ZERO_ADDRESS);
     expect(await this.vesting.getToken()).to.equal(ZERO_ADDRESS);
@@ -35,10 +39,22 @@ contract('DecubateVesting', function (accounts) {
         9327600,
         await time.latest(),
         await time.duration.minutes(10),
-        100,
+        1000,
         false,
         { from: this.anotherAccount }
       )).to.be.revertedWith('Test');
+    });
+
+    it('should add vesting', async function () {
+      this.vesting.addVestingStrategy(
+        'Added Strategy',
+        9327600,
+        await time.latest(),
+        await time.duration.minutes(10),
+        1000,
+        false,
+        { from: this.initialHolder }
+      );
     });
   });
 });
