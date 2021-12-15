@@ -137,8 +137,8 @@ contract Bithotel is AccessControl, ERC20Capped, ERC20Fallback {
     *
     */
     function lockTokens(uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
-      _transfer(_msgSender(), DEAD_ADDRESS, amount);
-      return true;
+        _transfer(_msgSender(), DEAD_ADDRESS, amount);
+        return true;
     }
 
     /**
@@ -147,8 +147,8 @@ contract Bithotel is AccessControl, ERC20Capped, ERC20Fallback {
     * See {ERC20-_burn}.
     */
     function burn(uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
-      _burn(_msgSender(), amount);
-      return true;
+        _burn(_msgSender(), amount);
+        return true;
     }
 
     /**
@@ -174,7 +174,7 @@ contract Bithotel is AccessControl, ERC20Capped, ERC20Fallback {
       override
       view
     {
-      require(!hasRole("BLACKLISTED_ROLE", from), "Bithotel: from address banned");
-      require(!hasRole("BLACKLISTED_ROLE", to), "Bithotel: to address banned");
+        require(!hasRole("BLACKLISTED_ROLE", from), "Bithotel: from address banned");
+        require(!hasRole("BLACKLISTED_ROLE", to), "Bithotel: to address banned");
     }
 }
