@@ -7,10 +7,8 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "./token/ERC20/utils/ERC20Fallback.sol";
 
-contract Bithotel is AccessControl, ERC20Capped, ERC20Fallback {
+contract BithotelChild is AccessControl, ERC20Capped, ERC20Fallback {
     using SafeMath for uint256;
-
-    uint8 immutable private _decimals;
 
     address public constant DEAD_ADDRESS = 0x000000000000000000000000000000000000dEaD;
     bytes32 public constant DEPOSITOR_ROLE = keccak256("DEPOSITOR_ROLE");
@@ -26,36 +24,16 @@ contract Bithotel is AccessControl, ERC20Capped, ERC20Fallback {
     constructor(
       string memory name,
       string memory symbol,
-      uint8 decimals_,
       uint256 initialSupply,
       uint256 supplyCap
     ) 
       ERC20(name, symbol)
-      ERC20Capped(supplyCap * (uint256(10) ** decimals_))
+      ERC20Capped(supplyCap)
       ERC20Fallback()
     {
-      _decimals = decimals_;
-      uint256 newSupply = initialSupply * (uint256(10) ** decimals_);
-      _mint(_msgSender(), newSupply);
+      _mint(_msgSender(), initialSupply);
       _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
       _setupRole(DEPOSITOR_ROLE, childChainManagerProxy());
-    }
-
-    /**
-    * @dev Returns the number of decimals used to get its user representation.
-    * For example, if `decimals` equals `2`, a balance of `505` tokens should
-    * be displayed to a user as `5,05` (`505 / 10 ** 2`).
-    *
-    * Tokens usually opt for a value of 18, imitating the relationship between
-    * Ether and Wei. This is the value {ERC20} uses, unless {decimals} is
-    * set in constructor.
-    *
-    * NOTE: This information is only used for _display_ purposes: it in
-    * no way affects any of the arithmetic of the contract, including
-    * {IERC20-balanceOf} and {IERC20-transfer}.
-    */
-    function decimals() public view virtual override returns (uint8) {
-        return _decimals;
     }
 
     //-------------------------------------------------------------------------------------------
