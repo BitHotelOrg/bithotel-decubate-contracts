@@ -1,5 +1,5 @@
-const { BN, constants, time } = require('@openzeppelin/test-helpers');
-const { expect, expectRevert } = require('chai');
+const { BN, constants, time, expectEvent } = require('@openzeppelin/test-helpers');
+const { expect } = require('chai');
 const { ZERO_ADDRESS } = constants;
 
 const Bithotel = artifacts.require('Bithotel');
@@ -84,9 +84,6 @@ contract('DecubateVesting', function (accounts) {
     });
 
     beforeEach(async function () {
-      // this.startTime = await time.latest();
-      // this.cliff = new BN(9327600);
-      // this.duration = await time.duration.minutes(10);
       await this.vesting.addVestingStrategy(
         'Added Strategy',
         this.cliff,
@@ -125,12 +122,12 @@ contract('DecubateVesting', function (accounts) {
       });
     });
 
-    describe("getReleasableAmount", () => {
+    describe('getReleasableAmount', () => {
       beforeEach(async function () {
         await this.vesting.addWhitelist(initialHolder, initialSupply, 0);
       });
 
-      it("should return the releasable amount", async function () {
+      it('should return the releasable amount', async function () {
         const current = Number(await time.latest());
         await this.vesting.setVestingStrategy(
           0,
@@ -142,30 +139,52 @@ contract('DecubateVesting', function (accounts) {
           false,
         );
     
-        const amount = await this.vesting.getReleasableAmount(0, accounts[0]);
+        const amount = await this.vesting.getReleasableAmount(0, initialHolder);
         assert.equal(amount, 0);
       });
     });
     
-    describe("disable", () => {
-      it("should disable and enable back a user from claiming vesting", async function () {
-        await this.vesting.addWhitelist(accounts[1], "1000000", 0);
-        await this.vesting.setVesting(0, accounts[1],true);
-        await this.vesting.setVesting(0, accounts[1],false);
+    describe('disable', () => {
+      it('should not whitelisted', async function () {
+        await expect(
+          this.vesting.getWhitelist(0, anotherAccount)).to.be.revertedWith('User is not in whitelist');
+      });
+
+      it('should able to whitelist', async function () {
+        const { logs } = await this.vesting.addWhitelist(anotherAccount, '1000000', 0);
+        expectEvent.inLogs(logs, 'AddWhitelist', {
+          wallet: anotherAccount,
+        });
+        const whitelistArray = await this.vesting.getWhitelist(0, anotherAccount);
+        expect(whitelistArray.wallet).to.equal(anotherAccount);
+        expect(whitelistArray.dcbAmount).to.equal('1000000');
+        expect(whitelistArray.distributedAmount).to.equal('0');
+        expect(whitelistArray.revoke).to.equal(false);
+        expect(whitelistArray.disabled).to.equal(false);
+      });
+
+      it('should disable and enable back a user from claiming vesting', async function () {
+        await this.vesting.addWhitelist(anotherAccount, '1000000', 0);
+        await this.vesting.setVesting(0, anotherAccount,true);
+        const whitelistArray = await this.vesting.getWhitelist(0, anotherAccount);
+        expect(whitelistArray.disabled).to.equal(true);
+        await this.vesting.setVesting(0, anotherAccount,false);
+        const whitelistArray2 = await this.vesting.getWhitelist(0, anotherAccount);
+        expect(whitelistArray2.disabled).to.equal(false);
       });
     });
     
     describe("claimDistribution", () => {
       it("should throw an error as there is not tokens to claim", async function () {
         await expect(
-          this.vesting.claimDistribution(0, accounts[0])).to.be.revertedWith(
+          this.vesting.claimDistribution(0, initialHolder)).to.be.revertedWith(
           "Zero amount to claim"
         );
       });
       it("should throw an error as user is disabled from claiming tokens", async function () {
-        await this.vesting.setVesting(0, accounts[1],true);
+        await this.vesting.setVesting(0, anotherAccount,true);
         await expectRevert(
-          this.vesting.claimDistribution(0, accounts[1]),
+          this.vesting.claimDistribution(0, anotherAccount),
           "User is disabled from claiming token"
         );
       });
@@ -183,12 +202,12 @@ contract('DecubateVesting', function (accounts) {
         );
         await this.vesting.setMaxTokenTransfer(1, true);
     
-        const bal_before = await this.token.balanceOf(accounts[0]);
+        const bal_before = await this.token.balanceOf(initialHolder);
     
-        await this.vesting.claimDistribution(0, accounts[0]);
+        await this.vesting.claimDistribution(0, initialHolder);
         await this.vesting.setMaxTokenTransfer(0, false);
     
-        const bal_after = await this.token.balanceOf(accounts[0]);
+        const bal_after = await this.token.balanceOf(initialHolder);
     
         assert.equal(bal_after.sub(bal_before), "1");
       });
@@ -205,11 +224,11 @@ contract('DecubateVesting', function (accounts) {
           false
         );
     
-        const bal_before = Number(await this.token.balanceOf(accounts[0]));
+        const bal_before = Number(await this.token.balanceOf(initialHolder));
     
-        await this.vesting.claimDistribution(0, accounts[0]);
+        await this.vesting.claimDistribution(0, initialHolder);
     
-        const bal_after = Number(await this.token.balanceOf(accounts[0]));
+        const bal_after = Number(await this.token.balanceOf(initialHolder));
     
         assert.equal(bal_after - bal_before, "999999");
       });
@@ -227,7 +246,7 @@ contract('DecubateVesting', function (accounts) {
           100,
           false
         );
-        const amount = await this.vesting.getVestAmount(0, accounts[0]);
+        const amount = await this.vesting.getVestAmount(0, initialHolder);
         assert.equal(amount, 0);
       });
     
@@ -243,7 +262,7 @@ contract('DecubateVesting', function (accounts) {
           false
         );
         await time.increase(101);
-        const amount = await this.vesting.getVestAmount(0, accounts[0]);
+        const amount = await this.vesting.getVestAmount(0, initialHolder);
         assert.equal(amount, '100000');
       });
     
@@ -259,7 +278,7 @@ contract('DecubateVesting', function (accounts) {
           false
         );
     
-        const amount = await this.vesting.getVestAmount(0, accounts[0]);
+        const amount = await this.vesting.getVestAmount(0, initialHolder);
         assert.equal(amount, "1000000");
       });
     
@@ -275,10 +294,10 @@ contract('DecubateVesting', function (accounts) {
           false
         );
     
-        let amount = Number(await this.vesting.getVestAmount(0, accounts[0]));
+        let amount = Number(await this.vesting.getVestAmount(0, initialHolder));
         assert.equal(amount,0); //Start hasn't been reached, so 0 amount
         await time.increase(50);
-        amount = Number(await this.vesting.getVestAmount(0, accounts[0]));
+        amount = Number(await this.vesting.getVestAmount(0, initialHolder));
         assert.equal(amount,100000); //Start has reached, so initial unlock
         await time.increase(200);
     
@@ -288,16 +307,16 @@ contract('DecubateVesting', function (accounts) {
         //Remaining token = 1000000 - 100000 = 900000
         //Another 100 seconds passed, of total 10000 seconds. So 1% of remaining should be unlocked
         //Total = 100000 + 900000/100 = 109000
-        amount = Number(await this.vesting.getVestAmount(0, accounts[0]));
+        amount = Number(await this.vesting.getVestAmount(0, initialHolder));
         assert.isAbove(amount,109000);
         await time.increase(850);
-        amount = Number(await this.vesting.getVestAmount(0, accounts[0]));
+        amount = Number(await this.vesting.getVestAmount(0, initialHolder));
         assert.isBelow(amount,1000000); //End date haven't reached, so will not get full amount
         await time.increase(100);
-        amount = Number(await this.vesting.getVestAmount(0, accounts[0]));
+        amount = Number(await this.vesting.getVestAmount(0, initialHolder));
         assert.equal(amount,1000000);//End date over, so full amount
         await time.increase(60*60*24*7);
-        amount = Number(await this.vesting.getVestAmount(0, accounts[0]));
+        amount = Number(await this.vesting.getVestAmount(0, initialHolder));
         assert.equal(amount,1000000);//One week passed after enddate, still same amount
       });
     });
