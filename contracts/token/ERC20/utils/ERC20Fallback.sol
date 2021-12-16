@@ -44,11 +44,14 @@ abstract contract ERC20Fallback {
     * - this address must have a token balance of at least `amount`.
     */
     function _prevalidateFallbackRedeem(IERC20 token_,  address to_, uint256 amount_) internal virtual view {
+      // solhint-disable-next-line reason-string
       require(address(token_) != address(0), "ERC20Fallback: token is the zero address");
+      // solhint-disable-next-line reason-string
       require(to_ != address(0), "ERC20Fallback: cannot recover to zero address");
       require(amount_ != 0, "ERC20Fallback: amount is 0");
       
       uint256 amount = token_.balanceOf(address(this));
+      // solhint-disable-next-line reason-string
       require(amount >= amount_, "ERC20Fallback: no token to release");
       this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
     }

@@ -1,4 +1,8 @@
 // SPDX-License-Identifier: MIT
+
+//** Decubate ERC20 TOKEN for Mainnet */
+//** Author Vipin */
+
 pragma solidity ^0.8.8;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -7,14 +11,12 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "./token/ERC20/utils/ERC20Fallback.sol";
 
-contract BithotelRoot is AccessControl, ERC20Capped, ERC20Fallback {
+contract Bithotel is AccessControl, ERC20Capped, ERC20Fallback {
     using SafeMath for uint256;
 
     address public constant DEAD_ADDRESS = 0x000000000000000000000000000000000000dEaD;
-    bytes32 public constant PREDICATE_ROLE = keccak256("PREDICATE_ROLE");
+    bytes32 public constant DEPOSITOR_ROLE = keccak256("DEPOSITOR_ROLE");
     bytes32 public constant BANNEDLISTED_ROLE = keccak256("BANNEDLISTED_ROLE");
-    
-    address private _predicateProxy = 0x9923263fA127b3d1484cFD649df8f1831c2A74e4; //ETH mainnet
 
     /**
     *
@@ -31,9 +33,8 @@ contract BithotelRoot is AccessControl, ERC20Capped, ERC20Fallback {
         ERC20Capped(supplyCap)
         ERC20Fallback()
     {
-        _mint(_msgSender(), initialSupply);
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        _setupRole(PREDICATE_ROLE, predicateProxy());
+        _mint(_msgSender(), initialSupply);
     }
 
     /**
@@ -43,7 +44,7 @@ contract BithotelRoot is AccessControl, ERC20Capped, ERC20Fallback {
     * @param {addr} Address array of users
     * @param {value} Whitelist status of users
     *
-    * @return {bool} Status of banned blacklist
+    * @return {bool} Status of bulk ban list
     *
     */
     function bulkBannedList(address[] calldata addr)
@@ -59,14 +60,40 @@ contract BithotelRoot is AccessControl, ERC20Capped, ERC20Fallback {
     }
 
     /**
-     * @dev See {IMintableERC20-mint}.
+     * @notice called when token is deposited on root chain
+     * @dev Should be callable only by ChildChainManager
+     * Should handle deposit by minting the required amount for user
+     * Make sure minting is done only by this function
+     * @param user user address for whom deposit is being done
+     * @param depositData abi encoded amount
      */
-    function mint(address user, uint256 amount) external onlyRole(PREDICATE_ROLE) {
+
+    function deposit(address user, bytes calldata depositData)
+        external
+        onlyRole(DEPOSITOR_ROLE)
+    {
+        uint256 amount = abi.decode(depositData, (uint256));
         _mint(user, amount);
     }
 
-    function predicateProxy() public view returns(address) {
-        return _predicateProxy;
+    /**
+    * @dev Destroys `amount` tokens from the caller.
+    *
+    * See {ERC20-_burn}.
+    */
+    function burn(address account, uint256 amount) public {
+        _burn(account, amount);
+    }
+
+    /**
+     * @notice Example function to handle minting tokens on matic chain
+     * @dev Minting can be done as per requirement,
+     * This implementation allows only admin to mint tokens but it can be changed as per requirement
+     * @param user user for whom tokens are being minted
+     * @param amount amount of token to mint
+     */
+    function mint(address user, uint256 amount) public onlyRole(DEPOSITOR_ROLE) {
+        _mint(user, amount);
     }
 
     /**
@@ -97,15 +124,6 @@ contract BithotelRoot is AccessControl, ERC20Capped, ERC20Fallback {
         super._prevalidateFallbackRedeem(token_, to_, amount_);
     }
 
-     /**
-    * @dev Destroys `amount` tokens from the caller.
-    *
-    * See {ERC20-_burn}.
-    */
-    function burn(address account, uint256 amount) public {
-        _burn(account, amount);
-    }
-
     /**
     * @dev Hook that is called before any transfer of tokens. This includes
     * minting and burning.
@@ -125,14 +143,14 @@ contract BithotelRoot is AccessControl, ERC20Capped, ERC20Fallback {
       // solhint-disable-next-line no-unused-vars
       uint256 amount
     )
-        internal
-        virtual
-        override
+      internal
+      virtual
+      override
     {
         if(hasRole(BANNEDLISTED_ROLE, from)) {
-        revert("Bithotel: from address banned");
-      } else if (hasRole(BANNEDLISTED_ROLE, to)) {
-        revert("Bithotel: to address banned");
-      }
+            revert("Bithotel: from address banned");
+        } else if (hasRole(BANNEDLISTED_ROLE, to)) {
+            revert("Bithotel: to address banned");
+        }
     }
 }

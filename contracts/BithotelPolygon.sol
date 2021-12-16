@@ -12,7 +12,7 @@ contract BithotelChild is AccessControl, ERC20Capped, ERC20Fallback {
 
     address public constant DEAD_ADDRESS = 0x000000000000000000000000000000000000dEaD;
     bytes32 public constant DEPOSITOR_ROLE = keccak256("DEPOSITOR_ROLE");
-    bytes32 public constant BLACKLISTED_ROLE = keccak256("BLACKLISTED_ROLE");
+    bytes32 public constant BANNEDLISTED_ROLE = keccak256("BANNEDLISTED_ROLE");
     
     address private _childChainManagerProxy = 0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa; //matic mainnet
 
@@ -22,18 +22,40 @@ contract BithotelChild is AccessControl, ERC20Capped, ERC20Fallback {
     *
     */
     constructor(
-      string memory name,
-      string memory symbol,
-      uint256 initialSupply,
-      uint256 supplyCap
+        string memory name,
+        string memory symbol,
+        uint256 initialSupply,
+        uint256 supplyCap
     ) 
-      ERC20(name, symbol)
-      ERC20Capped(supplyCap)
-      ERC20Fallback()
+        ERC20(name, symbol)
+        ERC20Capped(supplyCap)
+        ERC20Fallback()
     {
-      _mint(_msgSender(), initialSupply);
-      _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-      _setupRole(DEPOSITOR_ROLE, childChainManagerProxy());
+        _mint(_msgSender(), initialSupply);
+        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
+        _setupRole(DEPOSITOR_ROLE, childChainManagerProxy());
+    }
+
+    /**
+    *
+    * @dev Include/Exclude multiple address in blacklist
+    *
+    * @param {addr} Address array of users
+    * @param {value} Whitelist status of users
+    *
+    * @return {bool} Status of banned blacklist
+    *
+    */
+    function bulkBannedList(address[] calldata addr)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        returns (bool)
+    {
+        uint256 len = addr.length;
+        for (uint256 i = 0; i < len; i++) {
+            _setupRole(BANNEDLISTED_ROLE, addr[i]);
+        }
+        return true;
     }
 
     //-------------------------------------------------------------------------------------------
@@ -124,9 +146,8 @@ contract BithotelChild is AccessControl, ERC20Capped, ERC20Fallback {
     *
     * See {ERC20-_burn}.
     */
-    function burn(uint256 amount) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
-        _burn(_msgSender(), amount);
-        return true;
+    function burn(address account, uint256 amount) public {
+        _burn(account, amount);
     }
 
     /**
@@ -145,14 +166,17 @@ contract BithotelChild is AccessControl, ERC20Capped, ERC20Fallback {
     function _beforeTokenTransfer(
       address from,
       address to,
+      // solhint-disable-next-line no-unused-vars
       uint256 amount
     )
       internal
       virtual
       override
-      view
     {
-        require(!hasRole("BLACKLISTED_ROLE", from), "Bithotel: from address banned");
-        require(!hasRole("BLACKLISTED_ROLE", to), "Bithotel: to address banned");
+        if(hasRole(BANNEDLISTED_ROLE, from)) {
+            revert("Bithotel: from address banned");
+        } else if (hasRole(BANNEDLISTED_ROLE, to)) {
+            revert("Bithotel: to address banned");
+        }
     }
 }

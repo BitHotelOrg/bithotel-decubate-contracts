@@ -1,9 +1,8 @@
 const { BN, constants, time } = require('@openzeppelin/test-helpers');
 const { expect } = require('chai');
-const { ethers } = require("hardhat");
 const { ZERO_ADDRESS } = constants;
 
-const DecubateERC20Whitelisted = artifacts.require('DecubateERC20Whitelisted');
+const Bithotel = artifacts.require('Bithotel');
 const DecubateVesting = artifacts.require('DecubateVesting');
 
 contract('DecubateVesting', function (accounts) {
@@ -19,8 +18,7 @@ contract('DecubateVesting', function (accounts) {
     this.cliff = new BN(9327600);
     this.duration = await time.duration.minutes(10);
 
-
-    this.token = await DecubateERC20Whitelisted.new(name, symbol, initialSupply, 0, 0, 0);
+    this.token = await Bithotel.new(name, symbol, initialSupply, initialSupply);
     this.vesting = await DecubateVesting.new(this.token.address, { from: initialHolder.address });
     await this.token.transfer(this.vesting.address, new BN(100), { from: initialHolder });
   });
@@ -29,7 +27,7 @@ contract('DecubateVesting', function (accounts) {
     it('has a token', async function () {
       expect(await this.vesting.getToken()).to.equal(this.token.address);
     });
-  
+
     it('has an owner', async function () {
       expect(await this.vesting.owner()).to.equal(initialHolder);
     });
@@ -53,14 +51,11 @@ contract('DecubateVesting', function (accounts) {
         await time.duration.minutes(10),
         1000,
         false,
-        { from: anotherAccount }
+        { from: anotherAccount },
       )).to.be.revertedWith('Ownable: caller is not the owner');
     });
 
     it('should add vesting', async function () {
-      // const startTime = await time.latest();
-      // const cliff = new BN(9327600);
-      // const duration = await time.duration.minutes(10);
       this.vesting.addVestingStrategy(
         'Added Strategy',
         this.cliff,
@@ -68,7 +63,7 @@ contract('DecubateVesting', function (accounts) {
         this.duration,
         1000,
         false,
-        { from: initialHolder }
+        { from: initialHolder },
       );
 
       const vestingPools = await this.vesting.vestingPools(0);
@@ -99,7 +94,7 @@ contract('DecubateVesting', function (accounts) {
         this.duration,
         1000,
         false,
-        { from: initialHolder }
+        { from: initialHolder },
       );
     });
 
@@ -118,7 +113,7 @@ contract('DecubateVesting', function (accounts) {
         await expect(this.vesting.setMaxTokenTransfer(
           100,
           true,
-          { from: anotherAccount }
+          { from: anotherAccount },
         )).to.be.revertedWith('Ownable: caller is not the owner');
       });
 

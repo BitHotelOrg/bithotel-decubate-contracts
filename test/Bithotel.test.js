@@ -2,24 +2,28 @@ const { BN, constants, expectEvent, expectRevert } = require('@openzeppelin/test
 const { expect } = require('chai');
 const { ZERO_ADDRESS } = constants;
 
-const {
-  shouldBehaveLikeERC20,
-  shouldBehaveLikeERC20Transfer,
-  shouldBehaveLikeERC20Approve,
-} = require('./ERC20.behavior');
+const { shouldBehaveLikeERC20 } = require('./token/ERC20/ERC20.behavior');
+const { shouldBehaveLikeERC20Capped } = require('./token/ERC20/extensions/ERC20Capped.behavior');
 
-const DecubateERC20Whitelisted = artifacts.require('DecubateERC20Whitelisted');
+const Bithotel = artifacts.require('Bithotel');
 
-contract('ERC20', function (accounts) {
-  const [ initialHolder, recipient, anotherAccount ] = accounts;
+contract('Bithotel', function (accounts) {
+  const [ initialHolder, bannedSender, bannedRecipient, recipient, anotherAccount ] = accounts;
+  const BANNEDLISTED_ROLE = web3.utils.soliditySha3('BANNEDLISTED_ROLE');
 
   const name = 'My Token';
   const symbol = 'MTKN';
 
   const initialSupply = new BN(100);
 
+  it('requires a non-zero cap', async function () {
+    await expectRevert(
+      Bithotel.new(name, symbol, initialSupply, new BN(0), { from: initialHolder }), 'ERC20Capped: cap is 0',
+    );
+  });
+
   beforeEach(async function () {
-    this.token = await DecubateERC20Whitelisted.new(name, symbol, initialSupply, 0, 0, 0);
+    this.token = await Bithotel.new(name, symbol, initialSupply, initialSupply);
   });
 
   it('has a name', async function () {
@@ -35,6 +39,7 @@ contract('ERC20', function (accounts) {
   });
 
   shouldBehaveLikeERC20('ERC20', initialSupply, initialHolder, recipient, anotherAccount);
+  shouldBehaveLikeERC20Capped(initialHolder, [anotherAccount], initialSupply);
 
   describe('decrease allowance', function () {
     describe('when the spender is not the zero address', function () {
@@ -195,51 +200,76 @@ contract('ERC20', function (accounts) {
     });
   });
 
-  //
+  context('banned', function () {
+    beforeEach(async function () {
+      await this.token.transfer(bannedSender, 100, { from: initialHolder });
+      await this.token.grantRole(BANNEDLISTED_ROLE, bannedSender);
+      await this.token.grantRole(BANNEDLISTED_ROLE, bannedRecipient);
+    });
 
-  // describe('_burn', function () {
-  //   it('rejects a null account', async function () {
-  //     await expectRevert(this.token.burn(ZERO_ADDRESS, new BN(1)),
-  //       'ERC20: burn from the zero address');
-  //   });
+    it('should hasRole BANNEDLISTED_ROLE', async function () {
+      expect(await this.token.hasRole(BANNEDLISTED_ROLE, bannedSender)).to.be.equal(true);
+      expect(await this.token.hasRole(BANNEDLISTED_ROLE, bannedRecipient)).to.be.equal(true);
+    });
 
-  //   describe('for a non zero account', function () {
-  //     it('rejects burning more than balance', async function () {
-  //       await expectRevert(this.token.burn(
-  //         initialHolder, initialSupply.addn(1)), 'ERC20: burn amount exceeds balance',
-  //       );
-  //     });
+    it('revert when transfer to banned address', async function () {
+      await expectRevert(
+        this.token.transfer(bannedRecipient, 100, { from: initialHolder }),
+        'Bithotel: to address banned',
+      );
+    });
 
-  //     const describeBurn = function (description, amount) {
-  //       describe(description, function () {
-  //         beforeEach('burning', async function () {
-  //           const { logs } = await this.token.burn(initialHolder, amount);
-  //           this.logs = logs;
-  //         });
+    it('revert when transfer from banned address', async function () {
+      await expectRevert(
+        this.token.transfer(anotherAccount, 100, { from: bannedSender }),
+        'Bithotel: from address banned',
+      );
+    });
+  });
 
-  //         it('decrements totalSupply', async function () {
-  //           const expectedSupply = initialSupply.sub(amount);
-  //           expect(await this.token.totalSupply()).to.be.bignumber.equal(expectedSupply);
-  //         });
+  describe('_burn', function () {
+    it('rejects a null account', async function () {
+      await expectRevert(this.token.burn(ZERO_ADDRESS, new BN(1)),
+        'ERC20: burn from the zero address');
+    });
 
-  //         it('decrements initialHolder balance', async function () {
-  //           const expectedBalance = initialSupply.sub(amount);
-  //           expect(await this.token.balanceOf(initialHolder)).to.be.bignumber.equal(expectedBalance);
-  //         });
+    describe('for a non zero account', function () {
+      it('rejects burning more than balance', async function () {
+        await expectRevert(this.token.burn(
+          initialHolder, initialSupply.addn(1)), 'ERC20: burn amount exceeds balance',
+        );
+      });
 
-  //         it('emits Transfer event', async function () {
-  //           const event = expectEvent.inLogs(this.logs, 'Transfer', {
-  //             from: initialHolder,
-  //             to: ZERO_ADDRESS,
-  //           });
+      const describeBurn = function (description, amount) {
+        describe(description, function () {
+          beforeEach('burning', async function () {
+            const { logs } = await this.token.burn(initialHolder, amount);
+            this.logs = logs;
+          });
 
-  //           expect(event.args.value).to.be.bignumber.equal(amount);
-  //         });
-  //       });
-  //     };
+          it('decrements totalSupply', async function () {
+            const expectedSupply = initialSupply.sub(amount);
+            expect(await this.token.totalSupply()).to.be.bignumber.equal(expectedSupply);
+          });
 
-  //     describeBurn('for entire balance', initialSupply);
-  //     describeBurn('for less amount than balance', initialSupply.subn(1));
-  //   });
-  // });
+          it('decrements initialHolder balance', async function () {
+            const expectedBalance = initialSupply.sub(amount);
+            expect(await this.token.balanceOf(initialHolder)).to.be.bignumber.equal(expectedBalance);
+          });
+
+          it('emits Transfer event', async function () {
+            const event = expectEvent.inLogs(this.logs, 'Transfer', {
+              from: initialHolder,
+              to: ZERO_ADDRESS,
+            });
+
+            expect(event.args.value).to.be.bignumber.equal(amount);
+          });
+        });
+      };
+
+      describeBurn('for entire balance', initialSupply);
+      describeBurn('for less amount than balance', initialSupply.subn(1));
+    });
+  });
 });
