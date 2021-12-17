@@ -58,7 +58,7 @@ contract Bithotel is AccessControl, ERC20Capped, ERC20Fallback {
 
     //Modifier which blocks sell until blockSellUntil value
     modifier isSaleBlocked(address from, address to) {
-        if(hasRole(DEFAULT_ADMIN_ROLE, from) || hasRole(DEFAULT_ADMIN_ROLE, to) ) {
+        if(hasRole(DEFAULT_ADMIN_ROLE, from) && to == pairAddress ) {
             require(block.timestamp >= blockSellUntil, "Bithotel: Sell disabled!");
         }
         _;
