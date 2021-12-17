@@ -25,17 +25,33 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
 module.exports = {
   solidity: '0.8.8',
   networks: {
+    hardhat: {
+      blockGasLimit: 10000000,
+    },
     ropsten: {
       url: process.env.ROPSTEN_URL || '',
       accounts:
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    binance: {
+      url: 'https://bsc-dataseed.binance.org/',
+      chainId: 56,
+      accounts: [process.env.PRIVATE_KEY],
+      live: true,
+      saveDeployments: true,
+    },
+    binanceTesnet: {
+      url: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
+      chainId: 97,
+      accounts: [process.env.PRIVATE_KEY],
+      saveDeployments: true,
+    }
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
     currency: 'USD',
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: process.env.BSCSCAN_API_KEY,
   },
 };

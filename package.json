@@ -11,7 +11,9 @@
     "lint:sol": "solhint --max-warnings 0 \"contracts/**/*.sol\"",
     "test": "hardhat test",
     "deploy": "npx hardhat run scripts/deploy.js",
-    "gas-report": "env ENABLE_GAS_REPORT=true npm run test"
+    "deploy:binanceTesnet": "npx hardhat run scripts/deploy.js --network binanceTesnet",
+    "gas-report": "env ENABLE_GAS_REPORT=true npm run test",
+    "verify:binanceTesnet": "npx hardhat verify --network binanceTesnet --constructor-args scripts/arguments.js 0x0ab9DAF577310A656A6D0d64e8f376c14B76A145"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.3",

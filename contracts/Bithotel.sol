@@ -18,11 +18,6 @@ contract Bithotel is AccessControl, ERC20Capped, ERC20Fallback {
     bytes32 public constant DEPOSITOR_ROLE = keccak256("DEPOSITOR_ROLE");
     bytes32 public constant BANNEDLISTED_ROLE = keccak256("BANNEDLISTED_ROLE");
 
-    /**
-    *
-    * @dev mint initialSupply in constructor with symbol and name
-    *
-    */
     constructor(
         string memory name,
         string memory symbol,

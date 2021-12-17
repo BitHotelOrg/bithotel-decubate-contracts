@@ -15,10 +15,12 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
+  const name = 'Bithotel.io';
+  const symbol = 'TEST';
   const Bithotel = await hre.ethers.getContractFactory('Bithotel');
   const token = await Bithotel.deploy(
-    'NAME',
-    'SYMBOL',
+    name,
+    symbol,
     '1000000000000000000000000',
     '1000000000000000000000000',
   );
@@ -26,6 +28,18 @@ async function main() {
   await token.deployed();
 
   console.log('Bithotel deployed to:', token.address);
+
+  if (hre.network.name != 'hardhat') {
+    await hre.run("verify:verify", {
+      address: token.address,
+      constructorArguments: [
+        name,
+        symbol,
+        '1000000000000000000000000',
+        '1000000000000000000000000',
+      ],
+    });
+  }
 }
 
 // We recommend this pattern to be able to use async/await everywhere
