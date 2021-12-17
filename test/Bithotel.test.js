@@ -39,7 +39,7 @@ contract('Bithotel', function (accounts) {
   });
 
   shouldBehaveLikeERC20('ERC20', initialSupply, initialHolder, recipient, anotherAccount);
-  shouldBehaveLikeERC20Capped(initialHolder, [anotherAccount], initialSupply);
+  shouldBehaveLikeERC20Capped(initialHolder, [anotherAccount, initialSupply);
 
   describe('decrease allowance', function () {
     describe('when the spender is not the zero address', function () {

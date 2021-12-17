@@ -18,18 +18,50 @@ contract Bithotel is AccessControl, ERC20Capped, ERC20Fallback {
     bytes32 public constant DEPOSITOR_ROLE = keccak256("DEPOSITOR_ROLE");
     bytes32 public constant BANNEDLISTED_ROLE = keccak256("BANNEDLISTED_ROLE");
 
+    uint256 public startTime;
+    uint256 public blockSellUntil;
+
+    bool public isTimeLockEnabled;
+    address public pairAddress;
+
+    event TimeLockEnabled(bool value);
+
     constructor(
         string memory name,
         string memory symbol,
         uint256 initialSupply,
-        uint256 supplyCap
+        uint256 supplyCap,
+        uint256 time,
+        uint256 _startTime,
+        uint256 _blockSellUntil
     ) 
         ERC20(name, symbol)
         ERC20Capped(supplyCap)
         ERC20Fallback()
     {
+        isTimeLockEnabled = true;
+        startTime = _startTime + time;
+        blockSellUntil = _blockSellUntil;
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _mint(_msgSender(), initialSupply);
+    }
+
+    //Modifier which controls transfer on a set time period
+    modifier isTimeLocked(address from, address to) {
+        if (isTimeLockEnabled) {
+            if(hasRole(DEFAULT_ADMIN_ROLE, from) || hasRole(DEFAULT_ADMIN_ROLE, to) ) {
+                require(block.timestamp >= startTime, "Bithotel: Trading not enabled yet");
+            }
+        }
+        _;
+    }
+
+    //Modifier which blocks sell until blockSellUntil value
+    modifier isSaleBlocked(address from, address to) {
+        if(hasRole(DEFAULT_ADMIN_ROLE, from) || hasRole(DEFAULT_ADMIN_ROLE, to) ) {
+            require(block.timestamp >= blockSellUntil, "Bithotel: Sell disabled!");
+        }
+        _;
     }
 
     /**
@@ -69,6 +101,24 @@ contract Bithotel is AccessControl, ERC20Capped, ERC20Fallback {
     {
         uint256 amount = abi.decode(depositData, (uint256));
         _mint(user, amount);
+    }
+
+    /**
+    *
+    * @dev Set pairAddress
+    *
+    * @param {addr} address of pancakswap liquidity pair
+    *
+    * @return {bool} Status of operation
+    *
+    */
+    function setPairAddress(address addr)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        returns (bool)
+    {
+        pairAddress = addr;
+        return true;
     }
 
     /**
@@ -141,6 +191,8 @@ contract Bithotel is AccessControl, ERC20Capped, ERC20Fallback {
       internal
       virtual
       override
+      isTimeLocked(from, to)
+      isSaleBlocked(from, to)
     {
         if(hasRole(BANNEDLISTED_ROLE, from)) {
             revert("Bithotel: from address banned");
