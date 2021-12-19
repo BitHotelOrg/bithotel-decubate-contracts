@@ -46,6 +46,12 @@ async function main() {
   await token.whiteList('0xA140a478aE50b3E769E83608631a14ABdC7c5648', true);
   await token.whiteList('0x56ee5295014367e0308e00ae69dfd00e7c5fccbe', true);
 
+  if (hre.network.name !== 'binance') {
+    await token.whiteList('0x10ED43C718714eb63d5aA57B78B54704E256024E', true);
+  } else if (hre.network.name !== 'binanceTesnet') {
+    await token.whiteList('0xD99D1c33F9fC3444f8101754aBC46c52416550D1', true);
+  }
+
   // eslint-disable-next-line max-len
   console.log('0xA140a478aE50b3E769E83608631a14ABdC7c5648 whitelisted = ' + await token.isWhiteListed('0xA140a478aE50b3E769E83608631a14ABdC7c5648'));
   // eslint-disable-next-line max-len
