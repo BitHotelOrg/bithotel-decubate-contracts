@@ -20,9 +20,9 @@ async function main() {
   const name = 'Bit Hotel Token';
   const symbol = 'BTH';
   const totalSupply = '1000000000000000000000000000';
-  const now = toBN(new Date().valueOf());
-  // const tradingTime = ;
-  // const blockSellTime = ;
+  const now = new Date().valueOf();
+  const nowBN = toBN(now);
+  const blockSellUntil = nowBN.add(toBN(96400 * 1000));
   const Bithotel = await hre.ethers.getContractFactory('Bithotel');
   const token = await Bithotel.deploy(
     name,
@@ -30,7 +30,7 @@ async function main() {
     totalSupply,
     now,
     (86400 * 1000),
-    now.add(toBN(96400 * 1000)),
+    blockSellUntil.toString(),
   );
 
   console.log(
@@ -59,8 +59,8 @@ async function main() {
         symbol,
         totalSupply,
         now,
-        86400,
-        now + 96400,
+        (86400 * 1000),
+        blockSellUntil.toString(),
       ],
     });
   }
