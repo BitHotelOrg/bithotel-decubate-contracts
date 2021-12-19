@@ -3,27 +3,31 @@ const { expect } = require('chai');
 const { ZERO_ADDRESS } = constants;
 
 const { shouldBehaveLikeERC20 } = require('./token/ERC20/ERC20.behavior');
-const { shouldBehaveLikeERC20Capped } = require('./token/ERC20/extensions/ERC20Capped.behavior');
 
 const Bithotel = artifacts.require('Bithotel');
 
 contract('Bithotel', function (accounts) {
   const [ initialHolder, bannedSender, bannedRecipient, recipient, anotherAccount ] = accounts;
-  const BANNEDLISTED_ROLE = web3.utils.soliditySha3('BANNEDLISTED_ROLE');
+  const ADMIN_ROLE = web3.utils.soliditySha3('ADMIN_ROLE');
 
   const name = 'My Token';
   const symbol = 'MTKN';
 
   const initialSupply = new BN(100);
 
-  it('requires a non-zero cap', async function () {
-    await expectRevert(
-      Bithotel.new(name, symbol, initialSupply, new BN(0), { from: initialHolder }), 'ERC20Capped: cap is 0',
+  beforeEach(async function () {
+    this.token = await Bithotel.new(
+      name,
+      symbol,
+      initialSupply,
+      0,
+      0,
+      0,
     );
   });
 
-  beforeEach(async function () {
-    this.token = await Bithotel.new(name, symbol, initialSupply, initialSupply);
+  it('has admin role', async function () {
+    expect(await this.token.hasRole(ADMIN_ROLE, initialHolder)).to.equal(true);
   });
 
   it('has a name', async function () {
@@ -38,8 +42,15 @@ contract('Bithotel', function (accounts) {
     expect(await this.token.decimals()).to.be.bignumber.equal('18');
   });
 
+  it('should whitelisted', async function () {
+    expect(await this.token.isWhiteListed(initialHolder)).to.equal(true);
+  });
+
+  it('should not blacklisted', async function () {
+    expect(await this.token.isBlackListed(initialHolder)).to.equal(false);
+  });
+
   shouldBehaveLikeERC20('ERC20', initialSupply, initialHolder, recipient, anotherAccount);
-  shouldBehaveLikeERC20Capped(initialHolder, [anotherAccount], initialSupply);
 
   describe('decrease allowance', function () {
     describe('when the spender is not the zero address', function () {
@@ -200,29 +211,29 @@ contract('Bithotel', function (accounts) {
     });
   });
 
-  context('banned', function () {
+  context('blacklist', function () {
     beforeEach(async function () {
       await this.token.transfer(bannedSender, 100, { from: initialHolder });
-      await this.token.grantRole(BANNEDLISTED_ROLE, bannedSender);
-      await this.token.grantRole(BANNEDLISTED_ROLE, bannedRecipient);
+      await this.token.blackList(bannedSender, true);
+      await this.token.blackList(bannedRecipient, true);
     });
 
-    it('should hasRole BANNEDLISTED_ROLE', async function () {
-      expect(await this.token.hasRole(BANNEDLISTED_ROLE, bannedSender)).to.be.equal(true);
-      expect(await this.token.hasRole(BANNEDLISTED_ROLE, bannedRecipient)).to.be.equal(true);
+    it('should blacklisted', async function () {
+      expect(await this.token.isBlackListed(bannedSender)).to.be.equal(true);
+      expect(await this.token.isBlackListed(bannedRecipient)).to.be.equal(true);
     });
 
-    it('revert when transfer to banned address', async function () {
+    it('revert when transfer to blacklisted address', async function () {
       await expectRevert(
         this.token.transfer(bannedRecipient, 100, { from: initialHolder }),
-        'Bithotel: to address banned',
+        'Address is blacklisted',
       );
     });
 
-    it('revert when transfer from banned address', async function () {
+    it('revert when transfer from blacklisted address', async function () {
       await expectRevert(
         this.token.transfer(anotherAccount, 100, { from: bannedSender }),
-        'Bithotel: from address banned',
+        'Address is blacklisted',
       );
     });
   });

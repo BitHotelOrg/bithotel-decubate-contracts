@@ -1,7 +1,6 @@
 {
   "name": "hardhat-project",
   "scripts": {
-    "fork": "ganache-cli --fork https://data-seed-prebsc-1-s1.binance.org:8545",
     "compile": "hardhat compile",
     "coverage": "hardhat coverage",
     "lint": "npm run lint:js && npm run lint:sol",
@@ -13,7 +12,7 @@
     "deploy": "npx hardhat run scripts/deploy.js",
     "deploy:binanceTesnet": "npx hardhat run scripts/deploy.js --network binanceTesnet",
     "gas-report": "env ENABLE_GAS_REPORT=true npm run test",
-    "verify:binanceTesnet": "npx hardhat verify --network binanceTesnet --constructor-args scripts/arguments.js 0x0ab9DAF577310A656A6D0d64e8f376c14B76A145"
+    "verify:binanceTesnet": "npx hardhat verify --network binanceTesnet --constructor-args scripts/arguments.js 0xD5AE1585b71893EA53d0eb4EfD865798E0c9ac2b"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.3",
@@ -23,8 +22,11 @@
     "@nomiclabs/hardhat-web3": "^2.0.0",
     "@openzeppelin/contracts": "^4.4.0",
     "@openzeppelin/test-helpers": "^0.5.15",
+    "@uniswap/v2-periphery": "^1.1.0-beta.0",
     "chai": "^4.3.4",
+    "cross-var": "^1.1.0",
     "dotenv": "^10.0.0",
+    "dotenv-cli": "^4.1.1",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-config-standard": "^16.0.3",

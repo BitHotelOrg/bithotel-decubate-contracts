@@ -11,7 +11,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "./token/ERC20/utils/ERC20Fallback.sol";
 
-contract Bithotel is AccessControl, ERC20Capped, ERC20Fallback {
+contract Bithotel2 is AccessControl, ERC20Capped, ERC20Fallback {
     using SafeMath for uint256;
 
     address public constant DEAD_ADDRESS = 0x000000000000000000000000000000000000dEaD;

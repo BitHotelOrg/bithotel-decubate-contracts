@@ -24,9 +24,18 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
  */
 module.exports = {
   solidity: '0.8.8',
+  settings: {
+    optimizer: {
+      enabled: true,
+      runs: 200,
+    },
+  },
   networks: {
     hardhat: {
-      blockGasLimit: 10000000,
+      blockGasLimit: 1000000000,
+      forking: {
+        url: process.env.ALCHEMY_API,
+      },
     },
     ropsten: {
       url: process.env.ROPSTEN_URL || '',
@@ -45,7 +54,7 @@ module.exports = {
       chainId: 97,
       accounts: [process.env.PRIVATE_KEY],
       saveDeployments: true,
-    }
+    },
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
