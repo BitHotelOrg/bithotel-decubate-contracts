@@ -74,6 +74,14 @@ contract DecubateWhitelisted is Context, Ownable {
         _;
     }
 
+    function isWhiteListed(address addr) external view returns (bool) {
+        return _isWhiteListed[addr];
+    }
+
+    function isBlackListed(address addr) external view returns (bool) {
+        return _isBlackListed[addr];
+    }
+
     /**
     *
     * @dev Include/Exclude an address in whitelist
@@ -209,13 +217,5 @@ contract DecubateWhitelisted is Context, Ownable {
     {
         pairAddress = addr;
         return true;
-    }
-
-    function isWhiteListed(address addr) public view returns (bool) {
-        return _isWhiteListed[addr];
-    }
-
-    function isBlackListed(address addr) public view returns (bool) {
-        return _isBlackListed[addr];
     }
 }

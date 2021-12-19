@@ -15,19 +15,22 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const name = 'Bithotel.io';
-  const symbol = 'BMT';
-  const now = new Date().valueOf();
+  const toBN = web3.utils.toBN;
+
+  const name = 'Bit Hotel Token';
+  const symbol = 'BTH';
+  const totalSupply = '1000000000000000000000000000';
+  const now = toBN(new Date().valueOf());
   // const tradingTime = ;
   // const blockSellTime = ;
   const Bithotel = await hre.ethers.getContractFactory('Bithotel');
   const token = await Bithotel.deploy(
     name,
     symbol,
-    '1000000000000000000000000',
+    totalSupply,
     now,
-    now + 1,
-    now + 2,
+    (86400 * 1000),
+    now.add(toBN(96400 * 1000)),
   );
 
   console.log(
@@ -39,15 +42,25 @@ async function main() {
 
   console.log('Bithotel deployed to:', token.address);
 
+  console.log('-------WHITELISTING--------');
+  await token.whiteList('0xA140a478aE50b3E769E83608631a14ABdC7c5648', true);
+  await token.whiteList('0x56ee5295014367e0308e00ae69dfd00e7c5fccbe', true);
+
+  // eslint-disable-next-line max-len
+  console.log('0xA140a478aE50b3E769E83608631a14ABdC7c5648 whitelisted = ' + await token.isWhiteListed('0xA140a478aE50b3E769E83608631a14ABdC7c5648'));
+  // eslint-disable-next-line max-len
+  console.log('0x56ee5295014367e0308e00ae69dfd00e7c5fccbe whitelisted = ' + await token.isWhiteListed('0x56ee5295014367e0308e00ae69dfd00e7c5fccbe'));
+
   if (hre.network.name !== 'hardhat') {
     await hre.run('verify:verify', {
       address: token.address,
       constructorArguments: [
         name,
         symbol,
+        totalSupply,
         now,
-        now + 1,
-        now + 2,
+        86400,
+        now + 96400,
       ],
     });
   }
