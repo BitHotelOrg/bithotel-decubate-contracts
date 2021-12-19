@@ -4,6 +4,7 @@
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 const hre = require('hardhat');
+const { time } = require('@openzeppelin/test-helpers');
 
 // eslint-disable-next-line space-before-function-paren
 async function main() {
@@ -15,14 +16,11 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const toBN = web3.utils.toBN;
-
   const name = 'Bit Hotel Token';
   const symbol = 'BTH';
   const totalSupply = '1000000000000000000000000000';
   const now = new Date().valueOf();
-  const nowBN = toBN(now);
-  const blockSellUntil = nowBN.add(toBN(96400 * 1000));
+  const blockSellUntil = (await time.latest()).add(time.duration.days(3));
   const Bithotel = await hre.ethers.getContractFactory('Bithotel');
   const token = await Bithotel.deploy(
     name,
