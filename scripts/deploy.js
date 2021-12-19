@@ -35,7 +35,9 @@ async function main() {
 
   console.log(
     '----Arguments-----' +
-    ' time= ' + now,
+    ' time = ' + now +
+    ' startTime = ' + (86400 * 1000) +
+    ' blockSellUntil =' + blockSellUntil.toString(),
   );
 
   await token.deployed();
@@ -50,6 +52,17 @@ async function main() {
   console.log('0xA140a478aE50b3E769E83608631a14ABdC7c5648 whitelisted = ' + await token.isWhiteListed('0xA140a478aE50b3E769E83608631a14ABdC7c5648'));
   // eslint-disable-next-line max-len
   console.log('0x56ee5295014367e0308e00ae69dfd00e7c5fccbe whitelisted = ' + await token.isWhiteListed('0x56ee5295014367e0308e00ae69dfd00e7c5fccbe'));
+
+  const BithotelPair = await hre.ethers.getContractFactory('BithotelPair');
+  const pair = await BithotelPair.deploy();
+  await pair.deployed();
+
+  console.log('BithotelPair deployed to:', pair.address);
+  const pairAddress = await pair.pairAddress();
+  console.log('PairAddress = ' + pairAddress);
+
+  console.log('-------SET PAIR ADDRESS--------');
+  await token.setPairAddress(pairAddress);
 
   if (hre.network.name !== 'hardhat') {
     await hre.run('verify:verify', {

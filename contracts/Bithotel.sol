@@ -1,8 +1,4 @@
 // SPDX-License-Identifier: MIT
-
-//** Decubate ERC20 TOKEN for Mainnet */
-//** Author Vipin */
-
 pragma solidity ^0.8.8;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
