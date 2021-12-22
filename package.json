@@ -14,7 +14,8 @@
     "deploy:binance": "npx hardhat run scripts/deploy.js --network binance",
     "gas-report": "env ENABLE_GAS_REPORT=true npm run test",
     "verify:binanceTesnet": "npx hardhat verify --network binanceTesnet --constructor-args scripts/arguments.js 0x30E8AC5b73C3c29E1FCf84EDfCBB593882629Fc5",
-    "date": "npx hardhat run scripts/date.js"
+    "date": "npx hardhat run scripts/date.js",
+    "vesting": "npx hardhat run scripts/vestingInfo.js --network binance"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.3",
