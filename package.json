@@ -14,6 +14,7 @@
     "deploy:binance": "npx hardhat run scripts/deploy.js --network binance",
     "gas-report": "env ENABLE_GAS_REPORT=true npm run test",
     "verify:binanceTesnet": "npx hardhat verify --network binanceTesnet --constructor-args scripts/arguments.js 0x30E8AC5b73C3c29E1FCf84EDfCBB593882629Fc5",
+    "verify:binance": "npx hardhat verify --network binance --constructor-args scripts/arguments.js 0x4c928Cc6540661096cB1f410139B5C401E0abfb0",
     "date": "npx hardhat run scripts/date.js"
   },
   "devDependencies": {
