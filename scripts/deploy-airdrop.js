@@ -4,7 +4,6 @@
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
 const hre = require('hardhat');
-const { time } = require('@openzeppelin/test-helpers');
 
 // eslint-disable-next-line space-before-function-paren
 async function main() {
@@ -16,17 +15,11 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const DecubateVesting = await hre.ethers.getContractFactory('DecubateVesting');
-  const vesting = DecubateVesting.attach('0x6edA60dFBa919e2fe24Bdf1b2bd609855D93F7FB');
-  const getAllVestingPools = await vesting.getAllVestingPools();
+  const Airdrop = await hre.ethers.getContractFactory('Airdrop');
+  const airdrop = await Airdrop.deploy('0x398d562cd7Eb3Ee6DEec9C0Ec7e41E8cC42e5cc0');
+  await airdrop.deployed();
 
-  console.log('GET token' + await vesting.getToken());
-
-  console.log(getAllVestingPools);
-
-  const getWhitelistPool = await vesting.getWhitelistPool(0);
-  console.log(getWhitelistPool);
-
+  console.log('Airdrop Bithotel deployed to:', airdrop.address);
 }
 
 // We recommend this pattern to be able to use async/await everywhere

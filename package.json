@@ -10,6 +10,8 @@
     "lint:sol": "solhint --max-warnings 0 \"contracts/**/*.sol\"",
     "test": "hardhat test",
     "deploy": "npx hardhat run scripts/deploy.js",
+    "deploy:airdrop:binanceTesnet": "npx hardhat run scripts/deploy-airdrop.js --network binanceTesnet",
+    "airdrop:binanceTesnet": "npx hardhat run scripts/airdrop-big.js --network binanceTesnet",
     "deploy:binanceTesnet": "npx hardhat run scripts/deploy.js --network binanceTesnet",
     "deploy:binance": "npx hardhat run scripts/deploy.js --network binance",
     "gas-report": "env ENABLE_GAS_REPORT=true npm run test",
