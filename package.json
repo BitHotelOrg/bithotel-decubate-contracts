@@ -18,6 +18,7 @@
     "deploy:binance": "npx hardhat run scripts/deploy.js --network binance",
     "gas-report": "env ENABLE_GAS_REPORT=true npm run test",
     "verify:binanceTesnet": "npx hardhat verify --network binanceTesnet --constructor-args scripts/arguments.js 0x30E8AC5b73C3c29E1FCf84EDfCBB593882629Fc5",
+    "verify:airdrop:binance": "npx hardhat verify --network binance --constructor-args scripts/arguments-airdrop.js 0x3F8c10E5e5A67422A6D9e64dDE1185e1bABfC48B",
     "date": "npx hardhat run scripts/date.js",
     "vesting": "npx hardhat run scripts/vestingInfo.js --network binance",
     "withdraw:airdrop": "npx hardhat run scripts/withdraw-airdrop.js  --network binance"

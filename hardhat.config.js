@@ -43,12 +43,12 @@ module.exports = {
         process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     binance: {
-      url: 'https://bsc-dataseed.binance.org/',
+      url: 'https://bsc-dataseed1.defibit.io/',
       chainId: 56,
       accounts: [process.env.PRIVATE_KEY],
       live: true,
       saveDeployments: true,
-      gasPrice: 60000000000,
+      gasPrice: 10000000000,
     },
     binanceTesnet: {
       url: 'https://data-seed-prebsc-1-s1.binance.org:8545/',

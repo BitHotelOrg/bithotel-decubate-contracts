@@ -8,7 +8,7 @@ import "./DecubateWhitelisted.sol";
 
 import "./token/ERC20/utils/ERC20Fallback.sol";
 
-contract Bithotel is AccessControl, ERC20, DecubateWhitelisted, ERC20Fallback {
+contract BithotelV1 is AccessControl, ERC20, DecubateWhitelisted, ERC20Fallback {
     using SafeMath for uint256;
 
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");

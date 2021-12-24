@@ -1,10 +1,10 @@
 const hre = require('hardhat');
 const assert = require('assert');
-const data = require('./bithotel_airdrop_wei.json');
+const data = require('./wallets_not_found.json');
 
 const addresses = data.wallet;
 const amounts = data.amount;
-const chunkSize = 50;
+const chunkSize = 1;
 
 async function main () {
   const [deployer] = await hre.ethers.getSigners();
@@ -17,12 +17,15 @@ async function main () {
   const numTotal = addresses.length;
   const numChunks = Math.ceil(numTotal / chunkSize);
   const errorAddresses = [];
+  let nonce = await hre.ethers.provider.getTransactionCount(deployer.address);
+  console.log('nonce =' + nonce);
   for (let i = 0; i < numChunks; i++) {
     const addressesChunk = addresses.slice(chunkSize * i, Math.min(chunkSize * i + chunkSize, numTotal));
     const amountsChunk = amounts.slice(chunkSize * i, Math.min(chunkSize * i + chunkSize, numTotal));
     try {
-      const result = await airdrop.dropTokens(addressesChunk, amountsChunk, { from: deployer.address });
-      console.log('aj : ***** result => ', result);
+      const result = await airdrop.dropTokens(addressesChunk, amountsChunk, { from: deployer.address, nonce: nonce });
+      nonce += 1;
+      console.log('***** result => ', result);
     } catch (e) {
       errorAddresses.concat(errorAddresses);
       console.error(e);
@@ -35,6 +38,6 @@ async function main () {
 main()
   .then(() => process.exit(0))
     .catch(error => {
-        console.error(error);
+    console.error(error);
     process.exit(1);
   });
