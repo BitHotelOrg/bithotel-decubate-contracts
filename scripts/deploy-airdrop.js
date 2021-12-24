@@ -16,7 +16,7 @@ async function main() {
 
   // We get the contract to deploy
   const Airdrop = await hre.ethers.getContractFactory('Airdrop');
-  const airdrop = await Airdrop.deploy('0x83E3B33A69386dEB0DC9f860B480C79F1d8E3d8C');
+  const airdrop = await Airdrop.deploy('0x57Bc18F6177cDafFb34aCE048745bc913a1B1b54');
   await airdrop.deployed();
 
   console.log('Airdrop Bithotel deployed to:', airdrop.address);

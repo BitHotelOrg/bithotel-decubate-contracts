@@ -48,6 +48,7 @@ module.exports = {
       accounts: [process.env.PRIVATE_KEY],
       live: true,
       saveDeployments: true,
+      gasPrice: 60000000000,
     },
     binanceTesnet: {
       url: 'https://data-seed-prebsc-1-s1.binance.org:8545/',

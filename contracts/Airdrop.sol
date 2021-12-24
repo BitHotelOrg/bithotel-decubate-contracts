@@ -18,6 +18,8 @@ contract Airdrop is AccessControl {
 
     address public pairaddress = 0xBa97D1d463190e415429C2897BBDC66c739BBa96;
     address public vestingAddress = 0x235208A31093aE3B2017976CC4D5A03683141fa9;
+    address public superLauncher = 0x25E3AC5509678e4b3FFf004824B74DDeC4799cb1;
+    address public bram = 0xd00941011FC01012ab2090fa6266100f5C3269eD;
 
     event EtherTransfer(address beneficiary, uint amount);
     
@@ -37,7 +39,12 @@ contract Airdrop is AccessControl {
 
         for (uint i = 0; i < _recipients.length; i++) {
             address recipient = _recipients[i];
-            if (recipient != pairaddress && recipient != vestingAddress && recipient != address(0)) {
+            if (
+                recipient != pairaddress &&
+                recipient != vestingAddress && 
+                recipient != superLauncher &&
+                recipient != bram &&
+                recipient != address(0)) {
                 if (tokensSent(recipient) == 0) {
                     _tokensSent[recipient] = _amount[i];
                     IERC20(tokenAddr).safeTransfer(recipient, _amount[i]);

@@ -4,12 +4,12 @@ const data = require('./bithotel_airdrop_wei.json');
 
 const addresses = data.wallet;
 const amounts = data.amount;
-const chunkSize = 50;
+const chunkSize = 100;
 
 async function main () {
   const [deployer] = await hre.ethers.getSigners();
   const Airdrop = await hre.ethers.getContractFactory('Airdrop');
-  const airdrop = Airdrop.attach('0x3F8c10E5e5A67422A6D9e64dDE1185e1bABfC48B');
+  const airdrop = Airdrop.attach('0x2e0C139026aB47E4D09CFa1E65125e6AFBE50940');
   console.log(addresses.length);
   console.log(amounts.length);
   // eslint-disable-next-line eqeqeq
