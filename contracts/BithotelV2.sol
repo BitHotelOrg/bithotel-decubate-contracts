@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./DecubateWhitelisted.sol";
 
-contract Bithotel is ERC20, DecubateWhitelisted {
+contract BithotelV2 is ERC20, DecubateWhitelisted {
   using SafeMath for uint256;
 
   address public constant DEAD_ADDRESS =

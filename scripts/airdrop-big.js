@@ -9,7 +9,7 @@ const chunkSize = 100;
 async function main () {
   const [deployer] = await hre.ethers.getSigners();
   const Airdrop = await hre.ethers.getContractFactory('Airdrop');
-  const airdrop = Airdrop.attach('0xE9bc363462fbcb2BbEfB3FBc5bF563a2ab56B47d');
+  const airdrop = Airdrop.attach('0xD6781788FEcc15A38c3eCd5Fb6C29F5e9EA946D6');
   console.log(addresses.length);
   console.log(amounts.length);
   // eslint-disable-next-line eqeqeq
@@ -36,5 +36,5 @@ main()
   .then(() => process.exit(0))
     .catch(error => {
         console.error(error);
-        process.exit(1);
-    });
+    process.exit(1);
+  });

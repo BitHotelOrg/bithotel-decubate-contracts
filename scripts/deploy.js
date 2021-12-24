@@ -21,7 +21,7 @@ async function main() {
   const totalSupply = '1000000000000000000000000000';
   const now = new Date().valueOf();
   const blockSellUntil = (await time.latest()).add(time.duration.days(3));
-  const Bithotel = await hre.ethers.getContractFactory('Bithotel');
+  const Bithotel = await hre.ethers.getContractFactory('BithotelV2');
   const token = await Bithotel.deploy(
     name,
     symbol,

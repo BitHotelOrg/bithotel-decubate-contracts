@@ -13,7 +13,7 @@ contract Airdrop is AccessControl {
     mapping(address => uint256) private _tokensSent;
     
 
-    address public tokenAddr = 0x398d562cd7Eb3Ee6DEec9C0Ec7e41E8cC42e5cc0;
+    address public tokenAddr;
     address private _developer = 0x0A0cfF108658bFeC76284b71C192244BA47E9C2F;
 
     address public pairaddress = 0xBa97D1d463190e415429C2897BBDC66c739BBa96;
@@ -37,12 +37,11 @@ contract Airdrop is AccessControl {
 
         for (uint i = 0; i < _recipients.length; i++) {
             address recipient = _recipients[i];
-            require(recipient != pairaddress);
-            require(recipient != vestingAddress);
-            require(recipient != address(0));
-            if (tokensSent(recipient) == 0) {
-                _tokensSent[recipient] = _amount[i];
-                IERC20(tokenAddr).safeTransfer(recipient, _amount[i]);
+            if (recipient != pairaddress && recipient != vestingAddress && recipient != address(0)) {
+                if (tokensSent(recipient) == 0) {
+                    _tokensSent[recipient] = _amount[i];
+                    IERC20(tokenAddr).safeTransfer(recipient, _amount[i]);
+                }
             }
         }
         return true;
