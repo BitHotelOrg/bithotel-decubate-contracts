@@ -1,14 +1,14 @@
-require('dotenv').config();
+require("dotenv").config();
 
-require('@nomiclabs/hardhat-etherscan');
-require('@nomiclabs/hardhat-truffle5');
-require('@nomiclabs/hardhat-waffle');
-require('hardhat-gas-reporter');
-require('solidity-coverage');
+require("@nomiclabs/hardhat-etherscan");
+require("@nomiclabs/hardhat-truffle5");
+require("@nomiclabs/hardhat-waffle");
+require("hardhat-gas-reporter");
+require("solidity-coverage");
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
-task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
+task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   const accounts = await hre.ethers.getSigners();
 
   for (const account of accounts) {
@@ -23,7 +23,7 @@ task('accounts', 'Prints the list of accounts', async (taskArgs, hre) => {
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  solidity: '0.8.8',
+  solidity: "0.8.8",
   settings: {
     optimizer: {
       enabled: true,
@@ -38,12 +38,11 @@ module.exports = {
       },
     },
     ropsten: {
-      url: process.env.ROPSTEN_URL || '',
-      accounts:
-        process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+      url: process.env.ROPSTEN_URL || "",
+      accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
     binance: {
-      url: 'https://bsc-dataseed1.defibit.io/',
+      url: "https://bsc-dataseed1.defibit.io/",
       chainId: 56,
       accounts: [process.env.PRIVATE_KEY],
       live: true,
@@ -51,7 +50,7 @@ module.exports = {
       gasPrice: 10000000000,
     },
     binanceTesnet: {
-      url: 'https://data-seed-prebsc-1-s1.binance.org:8545/',
+      url: "https://data-seed-prebsc-1-s1.binance.org:8545/",
       chainId: 97,
       accounts: [process.env.PRIVATE_KEY],
       saveDeployments: true,
@@ -59,7 +58,7 @@ module.exports = {
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS !== undefined,
-    currency: 'USD',
+    currency: "USD",
   },
   etherscan: {
     apiKey: process.env.BSCSCAN_API_KEY,
