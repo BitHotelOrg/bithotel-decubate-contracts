@@ -3,8 +3,8 @@
 //
 // When running the script with `npx hardhat run <script>` you'll find the Hardhat
 // Runtime Environment's members available in the global scope.
-const hre = require('hardhat');
-const { time } = require('@openzeppelin/test-helpers');
+const hre = require("hardhat");
+const { time } = require("@openzeppelin/test-helpers");
 
 // eslint-disable-next-line space-before-function-paren
 async function main() {
@@ -16,69 +16,65 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const name = 'Bit Hotel Token';
-  const symbol = 'BTH';
-  const totalSupply = '1000000000000000000000000000';
+  const name = "Bit Hotel Token";
+  const symbol = "BTH";
+  const totalSupply = "1000000000000000000000000000";
   const now = new Date().valueOf();
   const blockSellUntil = (await time.latest()).add(time.duration.days(3));
-  const Bithotel = await hre.ethers.getContractFactory('BithotelV2');
-  const token = await Bithotel.deploy(
-    name,
-    symbol,
-    totalSupply,
-    now,
-    (86400 * 1000),
-    blockSellUntil.toString(),
-  );
+  const Bithotel = await hre.ethers.getContractFactory("Bithotel");
+  const token = await Bithotel.deploy(name, symbol, totalSupply, now, 86400 * 1000, blockSellUntil.toString());
 
   console.log(
-    '----Arguments-----' +
-    ' time = ' + now +
-    ' startTime = ' + (86400 * 1000) +
-    ' blockSellUntil =' + blockSellUntil.toString(),
+    "----Arguments-----" +
+      " time = " +
+      now +
+      " startTime = " +
+      86400 * 1000 +
+      " blockSellUntil =" +
+      blockSellUntil.toString()
   );
 
   await token.deployed();
 
-  console.log('Bithotel deployed to:', token.address);
+  console.log("Bithotel deployed to:", token.address);
 
-  console.log('-------WHITELISTING--------');
-  await token.whiteList('0xA140a478aE50b3E769E83608631a14ABdC7c5648', true);
-  await token.whiteList('0x56ee5295014367e0308e00ae69dfd00e7c5fccbe', true);
+  console.log("-------WHITELISTING--------");
+  await token.whiteList("0xA140a478aE50b3E769E83608631a14ABdC7c5648", true);
+  await token.whiteList("0x56ee5295014367e0308e00ae69dfd00e7c5fccbe", true);
+  await token.whiteList("0xBD659bE79a0017e30431e14FF0635495661C2480", true);
 
-  if (hre.network.name !== 'binance') {
-    await token.whiteList('0x10ED43C718714eb63d5aA57B78B54704E256024E', true);
-  } else if (hre.network.name !== 'binanceTesnet') {
-    await token.whiteList('0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3', true);
+  if (hre.network.name !== "binance") {
+    await token.whiteList("0x10ED43C718714eb63d5aA57B78B54704E256024E", true);
+  } else if (hre.network.name !== "binanceTesnet") {
+    await token.whiteList("0x9Ac64Cc6e4415144C455BD8E4837Fea55603e5c3", true);
   }
 
   // eslint-disable-next-line max-len
-  console.log('0xA140a478aE50b3E769E83608631a14ABdC7c5648 whitelisted = ' + await token.isWhiteListed('0xA140a478aE50b3E769E83608631a14ABdC7c5648'));
+  console.log(
+    "0xA140a478aE50b3E769E83608631a14ABdC7c5648 whitelisted = " +
+      (await token.isWhiteListed("0xA140a478aE50b3E769E83608631a14ABdC7c5648"))
+  );
   // eslint-disable-next-line max-len
-  console.log('0x56ee5295014367e0308e00ae69dfd00e7c5fccbe whitelisted = ' + await token.isWhiteListed('0x56ee5295014367e0308e00ae69dfd00e7c5fccbe'));
+  console.log(
+    "0x56ee5295014367e0308e00ae69dfd00e7c5fccbe whitelisted = " +
+      (await token.isWhiteListed("0x56ee5295014367e0308e00ae69dfd00e7c5fccbe"))
+  );
 
-  const BithotelPair = await hre.ethers.getContractFactory('BithotelPair');
-  const pair = await BithotelPair.deploy();
+  const DecubateVesting = await hre.ethers.getContractFactory("DecubateVesting");
+  const pair = await DecubateVesting.deploy(token.address);
   await pair.deployed();
 
-  console.log('BithotelPair deployed to:', pair.address);
-  const pairAddress = await pair.pairAddress();
-  console.log('PairAddress = ' + pairAddress);
+  console.log("DecubateVesting deployed to:", pair.address);
+  // const pairAddress = await pair.pairAddress();
+  // console.log('DecubateVesting = ' + pairAddress);
 
-  console.log('-------SET PAIR ADDRESS--------');
-  await token.setPairAddress(pairAddress);
+  console.log("-------SET PAIR ADDRESS--------");
+  // await token.setPairAddress(pairAddress);
 
-  if (hre.network.name !== 'hardhat') {
-    await hre.run('verify:verify', {
+  if (hre.network.name !== "hardhat") {
+    await hre.run("verify:verify", {
       address: token.address,
-      constructorArguments: [
-        name,
-        symbol,
-        totalSupply,
-        now,
-        (86400 * 1000),
-        blockSellUntil.toString(),
-      ],
+      constructorArguments: [name, symbol, totalSupply, now, 86400 * 1000, blockSellUntil.toString()],
     });
   }
 }
