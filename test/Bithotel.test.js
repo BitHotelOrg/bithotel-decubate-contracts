@@ -1,16 +1,17 @@
 const { BN, constants, expectEvent, expectRevert } = require("@openzeppelin/test-helpers");
 const { expect } = require("chai");
 const { ZERO_ADDRESS } = constants;
+const { ethers } = require("hardhat");
 
 const { shouldBehaveLikeERC20 } = require("./token/ERC20/ERC20.behavior");
 const { shouldBehaveLikeERC20Capped } = require("./token/ERC20/extensions/ERC20Capped.behavior");
 
 const getKicks = artifacts.require("getKicks");
+const pairAddress = "0x0000000000000000000000000000000000000001";
 
 contract("getKicks", function (accounts) {
-  const [initialHolder, bannedSender, bannedRecipient, recipient, anotherAccount, depositor] = accounts;
+  const [initialHolder, bannedSender, bannedRecipient, recipient, account, anotherAccount, depositor] = accounts;
   const BANNEDLISTED_ROLE = web3.utils.soliditySha3("BANNEDLISTED_ROLE");
-  const DEPOSITOR_ROLE = web3.utils.soliditySha3("DEPOSITOR_ROLE");
 
   const name = "My Token";
   const symbol = "MTKN";
@@ -19,13 +20,13 @@ contract("getKicks", function (accounts) {
 
   it("requires a non-zero cap", async function () {
     await expectRevert(
-      getKicks.new(name, symbol, initialSupply, new BN(0), 0, 0, 0, { from: initialHolder }),
+      getKicks.new(name, symbol, initialSupply, new BN(0), 0, 0, { from: initialHolder }),
       "ERC20Capped: cap is 0"
     );
   });
 
   beforeEach(async function () {
-    this.token = await getKicks.new(name, symbol, initialSupply, initialSupply, 0, 0, 0);
+    this.token = await getKicks.new(name, symbol, initialSupply, initialSupply, 0, 0);
   });
 
   it("has a name", async function () {
@@ -296,10 +297,53 @@ contract("getKicks", function (accounts) {
     });
   });
   describe("setPairAddress", function () {
-    const pairAddress = "0x0000000000000000000000000000000000000001";
     it("should set pair address", async function () {
       await this.token.setPairAddress(pairAddress);
       expect(await this.token.pairAddress()).to.be.equal(pairAddress);
+    });
+  });
+  describe("_beforeTokenTransfer", function () {
+    let token;
+    let currentTime;
+    describe("isTimeLocked", function () {
+      beforeEach(async function () {
+        let currentNumber = await ethers.provider.getBlockNumber();
+        let currentBlock = await ethers.provider.getBlock(currentNumber);
+        currentTime = currentBlock.timestamp;
+        token = await getKicks.new(name, symbol, initialSupply, initialSupply, currentTime + 10000, 0);
+      });
+      it("should revert on time locked", async function () {
+        await ethers.provider.send("evm_setNextBlockTimestamp", [currentTime + 10]);
+        await expectRevert(token.transfer(account, 100, { from: anotherAccount }), "getKicks: Trading not enabled yet");
+      });
+      it("should not revert on time locked on admin", async function () {
+        await ethers.provider.send("evm_setNextBlockTimestamp", [currentTime + 20]);
+        expect(await token.transfer(anotherAccount, 100, { from: initialHolder }));
+      });
+      it("should transfer after time lock timestamp", async function () {
+        await ethers.provider.send("evm_setNextBlockTimestamp", [currentTime + 20000]);
+        expect(await token.transfer(account, 100, { from: initialHolder }));
+        expect(await token.transfer(anotherAccount, 100, { from: account }));
+      });
+    });
+    describe("isSaleBlocked", function () {
+      beforeEach(async function () {
+        let currentNumber = await ethers.provider.getBlockNumber();
+        let currentBlock = await ethers.provider.getBlock(currentNumber);
+        currentTime = currentBlock.timestamp;
+        token = await getKicks.new(name, symbol, initialSupply, initialSupply, 0, currentTime + 10000);
+        await token.setPairAddress(pairAddress);
+      });
+      it("should revert on sale blocked", async function () {
+        await ethers.provider.send("evm_setNextBlockTimestamp", [currentTime + 10]);
+        await token.transfer(account, 100, { from: initialHolder });
+        await expectRevert(token.transfer(pairAddress, 100, { from: account }), "getKicks: Sell disabled!");
+      });
+      it("should not revert on sale blocked admin", async function () {
+        await ethers.provider.send("evm_setNextBlockTimestamp", [currentTime + 10]);
+        await token.transfer(account, 100, { from: initialHolder });
+        await expectRevert(token.transfer(pairAddress, 100, { from: account }), "getKicks: Sell disabled!");
+      });
     });
   });
 });

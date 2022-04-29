@@ -26,12 +26,11 @@ contract getKicks is AccessControl, ERC20Capped, Ownable {
         string memory symbol,
         uint256 initialSupply,
         uint256 supplyCap,
-        uint256 time,
         uint256 _startTime,
         uint256 _blockSellUntil
     ) ERC20(name, symbol) ERC20Capped(supplyCap) {
         isTimeLockEnabled = true;
-        startTime = _startTime + time;
+        startTime = _startTime;
         blockSellUntil = _blockSellUntil;
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _mint(_msgSender(), initialSupply);
@@ -40,7 +39,7 @@ contract getKicks is AccessControl, ERC20Capped, Ownable {
     //Modifier which controls transfer on a set time period
     modifier isTimeLocked(address from, address to) {
         if (isTimeLockEnabled) {
-            if (hasRole(DEFAULT_ADMIN_ROLE, from) || hasRole(DEFAULT_ADMIN_ROLE, to)) {
+            if (!hasRole(DEFAULT_ADMIN_ROLE, from) && !hasRole(DEFAULT_ADMIN_ROLE, to)) {
                 require(block.timestamp >= startTime, "getKicks: Trading not enabled yet");
             }
         }
@@ -49,7 +48,7 @@ contract getKicks is AccessControl, ERC20Capped, Ownable {
 
     //Modifier which blocks sell until blockSellUntil value
     modifier isSaleBlocked(address from, address to) {
-        if (hasRole(DEFAULT_ADMIN_ROLE, from) && to == pairAddress) {
+        if (!hasRole(DEFAULT_ADMIN_ROLE, from) && to == pairAddress) {
             require(block.timestamp >= blockSellUntil, "getKicks: Sell disabled!");
         }
         _;
