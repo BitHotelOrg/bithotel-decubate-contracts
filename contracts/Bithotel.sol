@@ -4,12 +4,12 @@ pragma solidity ^0.8.8;
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Capped.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract getKicks is AccessControl, ERC20Capped {
+contract getKicks is AccessControl, ERC20Capped, Ownable {
     using SafeMath for uint256;
 
-    address public constant DEAD_ADDRESS =
-        0x000000000000000000000000000000000000dEaD;
+    address public constant DEAD_ADDRESS = 0x000000000000000000000000000000000000dEaD;
     bytes32 public constant DEPOSITOR_ROLE = keccak256("DEPOSITOR_ROLE");
     bytes32 public constant BANNEDLISTED_ROLE = keccak256("BANNEDLISTED_ROLE");
 
@@ -40,14 +40,8 @@ contract getKicks is AccessControl, ERC20Capped {
     //Modifier which controls transfer on a set time period
     modifier isTimeLocked(address from, address to) {
         if (isTimeLockEnabled) {
-            if (
-                hasRole(DEFAULT_ADMIN_ROLE, from) ||
-                hasRole(DEFAULT_ADMIN_ROLE, to)
-            ) {
-                require(
-                    block.timestamp >= startTime,
-                    "Bithotel: Trading not enabled yet"
-                );
+            if (hasRole(DEFAULT_ADMIN_ROLE, from) || hasRole(DEFAULT_ADMIN_ROLE, to)) {
+                require(block.timestamp >= startTime, "getKicks: Trading not enabled yet");
             }
         }
         _;
@@ -56,10 +50,7 @@ contract getKicks is AccessControl, ERC20Capped {
     //Modifier which blocks sell until blockSellUntil value
     modifier isSaleBlocked(address from, address to) {
         if (hasRole(DEFAULT_ADMIN_ROLE, from) && to == pairAddress) {
-            require(
-                block.timestamp >= blockSellUntil,
-                "Bithotel: Sell disabled!"
-            );
+            require(block.timestamp >= blockSellUntil, "getKicks: Sell disabled!");
         }
         _;
     }
@@ -74,11 +65,7 @@ contract getKicks is AccessControl, ERC20Capped {
      * @return {bool} Status of bulk ban list
      *
      */
-    function bulkBannedList(address[] calldata addr)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-        returns (bool)
-    {
+    function bulkBannedList(address[] calldata addr) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
         uint256 len = addr.length;
         for (uint256 i = 0; i < len; i++) {
             _setupRole(BANNEDLISTED_ROLE, addr[i]);
@@ -95,10 +82,7 @@ contract getKicks is AccessControl, ERC20Capped {
      * @param depositData abi encoded amount
      */
 
-    function deposit(address user, bytes calldata depositData)
-        external
-        onlyRole(DEPOSITOR_ROLE)
-    {
+    function deposit(address user, bytes calldata depositData) external onlyRole(DEPOSITOR_ROLE) {
         uint256 amount = abi.decode(depositData, (uint256));
         _mint(user, amount);
     }
@@ -112,11 +96,7 @@ contract getKicks is AccessControl, ERC20Capped {
      * @return {bool} Status of operation
      *
      */
-    function setPairAddress(address addr)
-        external
-        onlyRole(DEFAULT_ADMIN_ROLE)
-        returns (bool)
-    {
+    function setPairAddress(address addr) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
         pairAddress = addr;
         return true;
     }
@@ -126,8 +106,9 @@ contract getKicks is AccessControl, ERC20Capped {
      *
      * See {ERC20-_burn}.
      */
-    function burn(address account, uint256 amount) public {
-        _burn(account, amount);
+    function burn(uint256 amount) external onlyOwner returns (bool) {
+        _burn(_msgSender(), amount);
+        return true;
     }
 
     /**
@@ -137,10 +118,7 @@ contract getKicks is AccessControl, ERC20Capped {
      * @param user user for whom tokens are being minted
      * @param amount amount of token to mint
      */
-    function mint(address user, uint256 amount)
-        public
-        onlyRole(DEPOSITOR_ROLE)
-    {
+    function mint(address user, uint256 amount) public onlyOwner {
         _mint(user, amount);
     }
 
@@ -164,9 +142,9 @@ contract getKicks is AccessControl, ERC20Capped {
         uint256 amount
     ) internal virtual override isTimeLocked(from, to) isSaleBlocked(from, to) {
         if (hasRole(BANNEDLISTED_ROLE, from)) {
-            revert("Bithotel: from address banned");
+            revert("getKicks: from address banned");
         } else if (hasRole(BANNEDLISTED_ROLE, to)) {
-            revert("Bithotel: to address banned");
+            revert("getKicks: to address banned");
         }
     }
 }
