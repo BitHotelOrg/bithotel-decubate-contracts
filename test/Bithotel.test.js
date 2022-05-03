@@ -341,8 +341,7 @@ contract("getKicks", function (accounts) {
       });
       it("should not revert on sale blocked admin", async function () {
         await ethers.provider.send("evm_setNextBlockTimestamp", [currentTime + 10]);
-        await token.transfer(account, 100, { from: initialHolder });
-        await expectRevert(token.transfer(pairAddress, 100, { from: account }), "getKicks: Sell disabled!");
+        expect(await token.transfer(pairAddress, 100, { from: initialHolder }));
       });
     });
   });
