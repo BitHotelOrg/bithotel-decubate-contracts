@@ -9,7 +9,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract getKicks is AccessControl, ERC20Capped, Ownable {
     using SafeMath for uint256;
 
-    address public constant DEAD_ADDRESS = 0x000000000000000000000000000000000000dEaD;
+    address public constant DEAD_ADDRESS =
+        0x000000000000000000000000000000000000dEaD;
     bytes32 public constant DEPOSITOR_ROLE = keccak256("DEPOSITOR_ROLE");
     bytes32 public constant BANNEDLISTED_ROLE = keccak256("BANNEDLISTED_ROLE");
 
@@ -20,6 +21,11 @@ contract getKicks is AccessControl, ERC20Capped, Ownable {
     address public pairAddress;
 
     event TimeLockEnabled(bool value);
+    event BulkBanned(address[] addr);
+    event Deposit(address user, bytes depositData);
+    event SetPairAddress(address addr);
+    event Burn(uint256 amount);
+    event Mint(address user, uint256 amount);
 
     constructor(
         string memory name,
@@ -39,8 +45,14 @@ contract getKicks is AccessControl, ERC20Capped, Ownable {
     //Modifier which controls transfer on a set time period
     modifier isTimeLocked(address from, address to) {
         if (isTimeLockEnabled) {
-            if (!hasRole(DEFAULT_ADMIN_ROLE, from) && !hasRole(DEFAULT_ADMIN_ROLE, to)) {
-                require(block.timestamp >= startTime, "getKicks: Trading not enabled yet");
+            if (
+                !hasRole(DEFAULT_ADMIN_ROLE, from) &&
+                !hasRole(DEFAULT_ADMIN_ROLE, to)
+            ) {
+                require(
+                    block.timestamp >= startTime,
+                    "getKicks: Trading not enabled yet"
+                );
             }
         }
         _;
@@ -49,7 +61,10 @@ contract getKicks is AccessControl, ERC20Capped, Ownable {
     //Modifier which blocks sell until blockSellUntil value
     modifier isSaleBlocked(address from, address to) {
         if (!hasRole(DEFAULT_ADMIN_ROLE, from) && to == pairAddress) {
-            require(block.timestamp >= blockSellUntil, "getKicks: Sell disabled!");
+            require(
+                block.timestamp >= blockSellUntil,
+                "getKicks: Sell disabled!"
+            );
         }
         _;
     }
@@ -64,11 +79,18 @@ contract getKicks is AccessControl, ERC20Capped, Ownable {
      * @return {bool} Status of bulk ban list
      *
      */
-    function bulkBannedList(address[] calldata addr) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
+    function bulkBannedList(address[] calldata addr)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        returns (bool)
+    {
         uint256 len = addr.length;
         for (uint256 i = 0; i < len; i++) {
             _setupRole(BANNEDLISTED_ROLE, addr[i]);
         }
+
+        emit BulkBanned(addr);
+
         return true;
     }
 
@@ -81,9 +103,15 @@ contract getKicks is AccessControl, ERC20Capped, Ownable {
      * @param depositData abi encoded amount
      */
 
-    function deposit(address user, bytes calldata depositData) external onlyRole(DEPOSITOR_ROLE) {
+    function deposit(address user, bytes calldata depositData)
+        external
+        onlyRole(DEPOSITOR_ROLE)
+    {
+        require(user != address(0), "User is zero address");
         uint256 amount = abi.decode(depositData, (uint256));
         _mint(user, amount);
+
+        emit Deposit(user, depositData);
     }
 
     /**
@@ -95,8 +123,15 @@ contract getKicks is AccessControl, ERC20Capped, Ownable {
      * @return {bool} Status of operation
      *
      */
-    function setPairAddress(address addr) external onlyRole(DEFAULT_ADMIN_ROLE) returns (bool) {
+    function setPairAddress(address addr)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+        returns (bool)
+    {
         pairAddress = addr;
+
+        emit SetPairAddress(addr);
+
         return true;
     }
 
@@ -107,6 +142,9 @@ contract getKicks is AccessControl, ERC20Capped, Ownable {
      */
     function burn(uint256 amount) external onlyOwner returns (bool) {
         _burn(_msgSender(), amount);
+
+        emit Burn(amount);
+
         return true;
     }
 
@@ -117,8 +155,10 @@ contract getKicks is AccessControl, ERC20Capped, Ownable {
      * @param user user for whom tokens are being minted
      * @param amount amount of token to mint
      */
-    function mint(address user, uint256 amount) public onlyOwner {
+    function mint(address user, uint256 amount) external onlyOwner {
         _mint(user, amount);
+
+        emit Mint(user, amount);
     }
 
     /**
