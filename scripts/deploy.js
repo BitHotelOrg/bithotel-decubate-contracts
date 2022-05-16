@@ -16,13 +16,13 @@ async function main() {
   // await hre.run('compile');
 
   // We get the contract to deploy
-  const name = 'Get Kicks';
-  const symbol = 'GTK';
-  const totalSupply = '1000000000000000000000000000';
+  const name = 'Kick';
+  const symbol = 'KICK';
+  const totalSupply = '5000000000000000000000000000';
   const now = new Date().valueOf();
   const blockSellUntil = (await time.latest()).add(time.duration.days(3));
   const Bithotel = await hre.ethers.getContractFactory('getKicks');
-  console.log(1);
+
   const token = await Bithotel.deploy(
     name,
     symbol,
@@ -30,8 +30,9 @@ async function main() {
     totalSupply,
     now,
     blockSellUntil.toString(),
+    "0x34D8fA861A245219c244681dEB98db83986A0994"
   );
-  console.log(1);
+
   console.log(
     '----Arguments-----' +
     ' time = ' + now +
@@ -79,6 +80,7 @@ async function main() {
         totalSupply,
         now,
         blockSellUntil.toString(),
+        "0x34D8fA861A245219c244681dEB98db83986A0994"
       ],
     });
   }

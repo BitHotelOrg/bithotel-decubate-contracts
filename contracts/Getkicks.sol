@@ -33,13 +33,14 @@ contract getKicks is AccessControl, ERC20Capped, Ownable {
         uint256 initialSupply,
         uint256 supplyCap,
         uint256 _startTime,
-        uint256 _blockSellUntil
+        uint256 _blockSellUntil,
+        address gnosisSafe
     ) ERC20(name, symbol) ERC20Capped(supplyCap) {
         isTimeLockEnabled = true;
         startTime = _startTime;
         blockSellUntil = _blockSellUntil;
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        _mint(_msgSender(), initialSupply);
+        _mint(gnosisSafe, initialSupply);
     }
 
     //Modifier which controls transfer on a set time period
