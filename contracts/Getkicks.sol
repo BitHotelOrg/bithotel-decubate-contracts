@@ -128,6 +128,8 @@ contract getKicks is AccessControl, ERC20Capped, Ownable {
         onlyRole(DEFAULT_ADMIN_ROLE)
         returns (bool)
     {
+        require(addr != address(0), "User is zero address");
+
         pairAddress = addr;
 
         emit SetPairAddress(addr);
